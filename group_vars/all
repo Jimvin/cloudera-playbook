@@ -7,11 +7,11 @@ krb5_realm: MIT.EXAMPLE.COM
 ad_domain: "{{ krb5_realm.lower() }}"
 computer_ou: OU=computer_hosts,OU=hadoop_prd,DC=ad,DC=sec,DC=example,DC=com 
 domain: MIT.EXAMPLE.COM
-kdc: tristan3-1.vpc.cloudera.com
-admin_server: tristan3-1.vpc.cloudera.com
+kdc: "{{ hostvars[groups['krb5_server'][0]]['inventory_hostname'] }}"
+admin_server: "{{ hostvars[groups['krb5_server'][0]]['inventory_hostname'] }}"
 enc_types: rc4-hmac DES-CBC-MD5 DES-CBC-CRC
 ad_account_prefix: prefix_
-kdc_account_creation_host_override: tristan3-1.vpc.cloudera.com
+kdc_account_creation_host_override: tristan-cdp-1.vpc.cloudera.com
 
 ## ------------------------------------------------------------------------------------------------------------
 ## Cluster software installation options
@@ -19,12 +19,12 @@ kdc_account_creation_host_override: tristan3-1.vpc.cloudera.com
 
 # Version of CDH to install
 cluster_version_cdh: 5.16.2
-#cluster_version_cdh: 7.x
+#cluster_version_cdh: 7.1.1
 
 # Version of Cloudera Manager to install
 cluster_version_cm:  5.16.2
-#cluster_version_cm:  "{{ cluster_version_cdh }}"
-#cluster_version_cm:  7.x.0
+cluster_version_cm:  "{{ cluster_version_cdh }}"
+cluster_version_cm:  7.1.1
 
 # Version of CDS Powered by Apache Spark (note: not installed if CDH6/7 is also selected)
 cluster_version_cds: 2.4.0.cloudera2
@@ -56,14 +56,15 @@ configs_by_version:
     scm_repo_gpgkey: "{{ cloudera_archive_protocol }}{{ cloudera_archive }}/cm6/{{ cluster_version_cm }}/redhat{{ ansible_distribution_major_version }}/yum/RPM-GPG-KEY-cloudera"
     scm_parcel_repositories: 
       - "{{ cloudera_archive_protocol }}{{ cloudera_archive }}/cdh6/{{ cluster_version_cdh }}/parcels"
-      - http://tristan3-1.vpc.cloudera.com/parcels/keytrustee-kms-6.1.0-parcels/6.1.0/parcels/
-      - http://tristan3-1.vpc.cloudera.com/parcels/keytrustee-server-6.1.0-parcels/6.1.0/parcels/
     scm_prepare_database_script_path: "/opt/cloudera/cm/schema/scm_prepare_database.sh"
   "7":
-    scm_repo_url:    "{{ cloudera_archive_protocol }}{{ cloudera_archive_authn }}@{{ cloudera_archive }}/p/cm7/{{ cluster_version_cm }}/redhat{{ ansible_distribution_major_version }}/yum"
-    scm_repo_gpgkey: "{{ cloudera_archive_protocol }}{{ cloudera_archive_authn }}@{{ cloudera_archive }}/p/cm7/{{ cluster_version_cm }}/redhat{{ ansible_distribution_major_version }}/yum/RPM-GPG-KEY-cloudera"
+#    scm_repo_url:    "{{ cloudera_archive_protocol }}{{ cloudera_archive_authn }}@{{ cloudera_archive }}/p/cm7/{{ cluster_version_cm }}/redhat{{ ansible_distribution_major_version }}/yum"
+#    scm_repo_gpgkey: "{{ cloudera_archive_protocol }}{{ cloudera_archive_authn }}@{{ cloudera_archive }}/p/cm7/{{ cluster_version_cm }}/redhat{{ ansible_distribution_major_version }}/yum/RPM-GPG-KEY-cloudera"
+    scm_repo_url:    "http://cloudera-build-4-us-west-2.vpc.cloudera.com/s3/build/2064814/cm7/7.1.1/redhat7/yum/"
+    scm_repo_gpgkey: "http://cloudera-build-4-us-west-2.vpc.cloudera.com/s3/build/2064814/cm7/7.1.1/redhat7/yum/RPM-GPG-KEY-cloudera"
     scm_parcel_repositories:
-      - "{{ cloudera_archive_protocol }}{{ cloudera_archive_authn }}@{{ cloudera_archive }}/p/cdh7/{{ cluster_version_cdh }}/parcels"
+#      - "{{ cloudera_archive_protocol }}{{ cloudera_archive_authn }}@{{ cloudera_archive }}/p/cdh7/{{ cluster_version_cdh }}/parcels"
+      - http://cloudera-build-4-us-west-2.vpc.cloudera.com/s3/build/2070944/cdh/7.x/parcels
     scm_prepare_database_script_path: "/opt/cloudera/cm/schema/scm_prepare_database.sh"
 
 scm_default_user: admin

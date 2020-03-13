@@ -11,65 +11,91 @@ mysql_root_password: changeme
 
 databases:
   scm:
-    name: 'scm'
-    user: 'scm'
-    pass: 'scm_password'
-    type: 'mysql'
-    host: 'tristan3-1.vpc.cloudera.com'
-    port: '3306'
+    name: "scm"
+    user: "scm"
+    pass: "scm_password"
+    type: "mysql"
+    host: "{{ hostvars[groups['db_server'][0]]['inventory_hostname'] }}"
+    port: "3306"
+    encoding: "utf8"
   amon:
-    name: 'amon'
-    user: 'amon'
-    pass: 'amon_password'
-    type: 'mysql'
-    host: 'tristan3-1.vpc.cloudera.com'
-    port: '3306'
+    name: "amon"
+    user: "amon"
+    pass: "amon_password"
+    type: "mysql"
+    host: "{{ hostvars[groups['db_server'][0]]['inventory_hostname'] }}"
+    port: "3306"
+    encoding: "utf8"
   rman:
-    name: 'rman'
-    user: 'rman'
-    pass: 'rman_password'
-    type: 'mysql'
-    host: 'tristan3-1.vpc.cloudera.com'
-    port: '3306'
+    name: "rman"
+    user: "rman"
+    pass: "rman_password"
+    type: "mysql"
+    host: "{{ hostvars[groups['db_server'][0]]['inventory_hostname'] }}"
+    port: "3306"
+    encoding: "utf8"
   nav:
-    name: 'nav'
-    user: 'nav'
-    pass: 'nav_password'
-    type: 'mysql'
-    host: 'tristan3-1.vpc.cloudera.com'
-    port: '3306'
+    name: "nav"
+    user: "nav"
+    pass: "nav_password"
+    type: "mysql"
+    host: "{{ hostvars[groups['db_server'][0]]['inventory_hostname'] }}"
+    port: "3306"
+    encoding: "utf8"
   navms:
-    name: 'navms'
-    user: 'navms'
-    pass: 'navms_password'
-    type: 'mysql'
-    host: 'tristan3-1.vpc.cloudera.com'
-    port: '3306'
+    name: "navms"
+    user: "navms"
+    pass: "navms_password"
+    type: "mysql"
+    host: "{{ hostvars[groups['db_server'][0]]['inventory_hostname'] }}"
+    port: "3306"
+    encoding: "utf8"
   metastore:
-    name: 'metastore'
-    user: 'hive'
-    pass: 'hive_password'
-    type: 'mysql'
-    host: 'tristan3-1.vpc.cloudera.com'
-    port: '3306'
+    name: "metastore"
+    user: "hive"
+    pass: "hive_password"
+    type: "mysql"
+    host: "{{ hostvars[groups['db_server'][0]]['inventory_hostname'] }}"
+    port: "3306"
+    encoding: "utf8"
   sentry:
-    name: 'sentry'
-    user: 'sentry'
-    pass: 'sentry_password'
-    type: 'mysql'
-    host: 'tristan3-1.vpc.cloudera.com'
-    port: '3306'
+    name: "sentry"
+    user: "sentry"
+    pass: "sentry_password"
+    type: "mysql"
+    host: "{{ hostvars[groups['db_server'][0]]['inventory_hostname'] }}"
+    port: "3306"
+    encoding: "utf8"
   hue:
-    name: 'hue'
-    user: 'hue'
-    pass: 'hue_password'
-    type: 'mysql'
-    host: 'tristan3-1.vpc.cloudera.com'
-    port: '3306'
+    name: "hue"
+    user: "hue"
+    pass: "hue_password"
+    type: "mysql"
+    host: "{{ hostvars[groups['db_server'][0]]['inventory_hostname'] }}"
+    port: "3306"
+    encoding: "utf8"
   oozie:
-    name: 'oozie'
-    user: 'oozie'
-    pass: 'oozie_password'
-    type: 'mysql'
-    host: 'tristan3-1.vpc.cloudera.com'
-    port: '3306'
+    name: "oozie"
+    user: "oozie"
+    pass: "oozie_password"
+    type: "mysql"
+    host: "{{ hostvars[groups['db_server'][0]]['inventory_hostname'] }}"
+    port: "3306"
+    encoding: "utf8"
+  das:
+    name: "das"
+    user: "das"
+    pass: "das_password"
+    host: "{{ hostvars[groups['db_server'][0]]['inventory_hostname'] }}"
+    port: "3306"
+    type: "{{ database_type }}"
+    encoding: "utf8"
+  ranger:
+    name: "ranger"
+    user: "ranger"
+    pass: "ranger_password"
+    host: "{{ hostvars[groups['db_server'][0]]['inventory_hostname'] }}"
+    port: "3306"
+    type: "{{ database_type }}"
+    encoding: "latin1"
+
