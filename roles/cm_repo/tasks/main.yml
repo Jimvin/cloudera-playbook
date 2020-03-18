@@ -6,7 +6,7 @@
     description: Cloudera Manager
     baseurl: "{{ scm_repo_url }}"
     gpgkey: "{{ scm_repo_gpgkey }}"
-    gpgcheck: yes
+    gpgcheck: no
     enabled: yes
-  when: 
+  when:
   - ansible_os_family|lower == "redhat"

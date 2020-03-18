@@ -13,10 +13,12 @@
       {% if (krb5_kdc_type == 'ad') or (krb5_kdc_type == 'mit') %}
       "value": "kerberos"
       }, {
+      {% if (trusted_realms is defined) %}
       "name" : "trusted_realms",
-      "value" : "{{ trusted_realm|upper }},{{ default_realm|upper }}"
+      "value" : "{% for realm in trusted_realms %}{{ realm|upper }}, {% endfor %}{{ default_realm|upper }}"
       }, {
-      {% if cdh_tls == 'true' %}
+      {% endif %}
+      {% if (cdh_tls) %}
       "name" : "dfs_data_transfer_protection",
       "value" : "privacy"
       }, {
@@ -107,7 +109,7 @@
           "name": "dfs_data_dir_list",
           "variable": "DFS_DATA_DIR_LIST"
         }
-        {% if ((krb5_kdc_type == 'ad') or (krb5_kdc_type == 'mit')) and (cdh_tls == 'true') %}
+        {% if ((krb5_kdc_type == 'ad') or (krb5_kdc_type == 'mit')) and (cdh_tls) %}
          , {
           "name": "dfs_datanode_port",
           "value": "10040"
@@ -213,7 +215,7 @@
           "value" : "{{ log_base }}/hadoop-hdfs"
         {% if (cdh_services | json_query('[?type==`hdfs`].jn_java_heapsize') | length > 0 )  %}
         }, {
-          "name" : "journalNode_java_heapsiz",
+          "name" : "journalNode_java_heapsize",
           "variable" : "JN_JAVA_HEAPSIZE"
         {% endif %}
         }
@@ -224,7 +226,7 @@
       "roleType": "HTTPFS",
       "configs": [{
           "name" : "httpfs_log_dir",
-          "value" : "{{ log_base }}/hadoop-httpfs" 
+          "value" : "{{ log_base }}/hadoop-httpfs"
         }
         {% if (cdh_tls) %}
         , {

@@ -3,9 +3,9 @@
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server_enc.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server.yml"
 
-- name: Copy license file to scm_server
+- name: Copy license file to the server
   copy:
-    src: "{{ hostvars[scm_hostname]['license_file'] }}"
+    src: "{{ inventory_dir }}/files/cloudera_license.txt"
     dest: "{{ hostvars[scm_hostname]['license_file'] }}"
     owner: cloudera-scm
     group: cloudera-scm

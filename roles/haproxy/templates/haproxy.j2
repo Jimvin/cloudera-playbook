@@ -31,7 +31,7 @@ global
 #---------------------------------------------------------------------
 # common defaults that all the 'listen' and 'backend' sections will
 # use if not designated in their block
-# 
+#
 # increased "timeout client" and "timeout server" from 5m to 30m, see: CLCL-1410
 #
 #---------------------------------------------------------------------
@@ -115,7 +115,7 @@ backend bk_hs2
     mode tcp
     balance source
     timeout server 12h
-    {% for host in groups['gatewaylb_servers'] %}
+    {% for host in groups['gatewayen_servers'] %}
     server hive{{ host }} {{ host }}:10000 ssl ca-file {{ tls.cert_chain }}
     {% endfor %}
 

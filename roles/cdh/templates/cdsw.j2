@@ -39,11 +39,11 @@
         "value" : "true"
       }, {
         "name" : "cdsw.tls.cert.config",
-        "value" : "/opt/cloudera/security/x509/localhost.pem"
+        "value" : "{{ tls.tls_cert }}"
       }, {
         "name" : "cdsw.tls.key.config",
-        "value" : "/opt/cloudera/security/x509/localhost.key.unenc"
-      } 
+        "value" : "{{ tls.private_key_unenc }}"
+      }
       {% endif %}
       ],
       "base" : true
@@ -60,7 +60,7 @@
       "roleType" : "CDSW_DOCKER",
       "configs" : [ {
         "name" : "cdsw.docker.devices.config",
-        "value" : "/dev/sdd"
+        "variable" : "CDSW_DOCKER_DEVICE"
       } ],
       "base" : true
     } ]

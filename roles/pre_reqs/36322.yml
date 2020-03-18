@@ -32,7 +32,7 @@
 - user: name=kafka      state=present group=kafka      createhome=no system=yes home=/var/lib/kafka
 - user: name=kms        state=present group=kms        createhome=no system=yes home=/var/lib/kms
 - user: name=keytrustee state=present group=keytrustee createhome=no system=yes home=/var/lib/keytrustee
-- user: name=kudu       state=present group=kudu       createhome=no system=yes home=/var/lib/kudu
+- user: name=kudu       state=present group=kudu       createhome=no system=yes home=/var/lib/kudu groups=hive
 - user: name=mapred     state=present group=mapred     createhome=no system=yes home=/var/lib/hadoop-mapreduce groups=hadoop
 - user: name=oozie      state=present group=oozie      createhome=no system=yes home=/var/lib/oozie
 - user: name=solr       state=present group=solr       createhome=no system=yes home=/var/lib/solr

@@ -2,8 +2,15 @@
 
 - include_vars: "{{ inventory_dir }}/group_vars/cdh_servers.yml"
 
-- debug:
-   var=group_names
+- set_fact:
+   data_dirs: "{{ cdh_services | json_query('[?type==`hdfs`].dfs_data_dir_list') | first }}"
+
+- name: DFS Data Dir Delete
+  file:
+    path: "{{ item }}"
+    state: absent
+  ignore_errors: true
+  with_items: "{{ data_dirs.split(',') }}"
 
 - name: SNN Dir Delete
   file:
@@ -50,7 +57,7 @@
 
 - name: Kafka Dir
   file:
-    path: "/var/local/kafka/data"
+    path: "{{ cdh_services | json_query('[?type==`kafka`].kafka_data_log_dirs') | first }}"
     state: absent
   when: "'kafka_brokers' in group_names"
 

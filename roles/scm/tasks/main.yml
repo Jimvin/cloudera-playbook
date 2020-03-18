@@ -4,7 +4,7 @@
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server_enc.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/ldap_enc.yml"
-- include_vars: "{{ inventory_dir }}/group_vars/tls_enc.yml"
+- include_vars: "{{ inventory_dir }}/group_vars/pki.yml"
 
 - name: Install the Cloudera Manager Server Packages
   yum:
@@ -15,11 +15,26 @@
     - openldap-clients
     state: installed
 
+- name: Create SCM Dir
+  file:
+    path: /var/lib/cloudera-scm-server
+    state: directory
+    owner: cloudera-scm
+    group: cloudera-scm
+    mode: 0775
+
+#To Do
+#Change scm_dir to use if statement - previously /usr/share/cmf/
+#Remove MySQL ref
+
 - name: Prepare Cloudera Manager Server External Database
   command: |
     {{ scm_prepare_database_script_path }}  -f
-    --host {{ hostvars[db_hostname]['inventory_hostname'] }}
-    {{ database_type }} {{ databases.scm.name }} {{ databases.scm.user }} {{ databases.scm.pass }}
+    --host {{ databases.scm.host }}
+    --port {{ databases.scm.port }}
+    {{ databases.scm.type }} {{ databases.scm.name }} {{ databases.scm.user }} {{ databases.scm.pass }}
+
+
   changed_when: False
 
 - name: Create CSD directory
@@ -55,7 +70,7 @@
     method: GET
     status_code: 200
     user: "{{ scm_default_user }}"
-    password: "{{ scm_default_pass }}"
+    password: "admin"
     force_basic_auth: yes
     return_content: yes
   register: result
@@ -66,6 +81,20 @@
 - debug:
     var: cm_api_url
     verbosity: 1
+
+- name: Update Cloudera Manager password
+  uri:
+    url: "{{ cm_api_url }}/users/admin"
+    method: PUT
+    body_format: json
+    body: "{ \"name\": \"{{ scm_default_user }}\", \"password\": \"{{ scm_default_pass }}\" }"
+    status_code: 200
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "admin"
+    return_content: yes
+  register: pw_resp
+
 
 - name: Get the host identifiers and names from Cloudera Manager
   uri:

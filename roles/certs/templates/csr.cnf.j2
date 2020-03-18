@@ -1,0 +1,36 @@
+[ CA_default ]
+# Directory and file locations.
+default_md = sha256
+
+[ req ]
+# Options for the `req` tool (`man req`).
+default_bits        = 2048
+distinguished_name  = req_distinguished_name
+req_extensions      = cloudera_req
+
+[ req_distinguished_name ]
+# See <https://en.wikipedia.org/wiki/Certificate_signing_request>.
+countryName                     = Country Name (2 letter code)
+stateOrProvinceName             = State or Province Name
+localityName                    = Locality Name
+0.organizationName              = Organization Name
+organizationalUnitName          = Organizational Unit Name
+commonName                      = Common Name
+
+# Optionally, specify some defaults.
+countryName_default             = {{ ca_countryname_default }}
+stateOrProvinceName_default     = {{ ca_state_or_province }}
+localityName_default            =
+0.organizationName_default      = {{ ca_org_name }}
+organizationalUnitName_default  = {{ ca_ou }}
+
+[ cloudera_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+subjectAltName = @alt_names
+
+[alt_names]
+{% for san in subject_alternative_names %}
+DNS.{{ loop.index }} =  {{ san }}
+{% endfor %}

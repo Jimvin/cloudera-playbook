@@ -4,7 +4,7 @@
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server_enc.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/cdh_servers.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/all"
-- include_vars: "{{ inventory_dir }}/group_vars/tls_enc.yml"
+- include_vars: "{{ inventory_dir }}/group_vars/pki.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/kms_servers.yml"
 
 - name: Set Keytrustee directory permissions
@@ -83,7 +83,7 @@
   register: result
 
 - set_fact: cm_api_url="{{ cm_api_url }}/api/{{ result.content }}"
- 
+
 - name:
   uri:
     url: "{{ cm_api_url }}/clusters/{{ kts_display_name }}/commands/start"
@@ -184,7 +184,7 @@
   register: KTS_auth
 
 
-- set_fact: 
+- set_fact:
     kts_auth_json: "{{ KTS_auth.stdout | from_json }}"
 
 - debug: var=kts_auth_json
@@ -298,12 +298,9 @@
   run_once: true
   register: hdfs_resp
 
-- set_fact:
-    cdh_version: "{{ scm_products | json_query('[?product==`CDH`].version') | first }}"
-
 - name: Check CDH parcel is activated on all hosts
   uri:
-    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}/parcels/products/CDH/versions/{{ cdh_version }}/"
+    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}/parcels/products/CDH/versions/{{ scm_products | json_query('[?product==`CDH`].version') | first }}/"
     method: GET
     status_code: 200,404
     force_basic_auth: yes
@@ -316,12 +313,9 @@
   delay: 30
   run_once: true
 
-- set_fact:
-    kms_version: "{{ scm_products | json_query('[?product==`KEYTRUSTEE`].version') | first }}"
-
 - name: Check KEYTRUSTEE parcel is activated on all hosts
   uri:
-    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}/parcels/products/KEYTRUSTEE/versions/{{ kms_version }}/"
+    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}/parcels/products/KEYTRUSTEE/versions/{{ scm_products | json_query('[?product==`KEYTRUSTEE`].version') | first }}/"
     method: GET
     status_code: 200,404
     force_basic_auth: yes

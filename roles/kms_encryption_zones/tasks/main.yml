@@ -82,7 +82,7 @@
     mode: 0777
 
 - name: Run encryption script
-  command: "{{ tmp_dir }}/createZones.sh"  
+  command: "{{ tmp_dir }}/createZones.sh"
   run_once: true
   register: encryption_script_out
   delegate_to: "{{ hostvars[groups['master_servers'][0]]['inventory_hostname'] }}"
@@ -107,7 +107,7 @@
     user: "{{ scm_default_user }}"
     password: "{{ scm_default_pass }}"
     return_content: yes
-  run_once: true
+    run_once: true
 
 - name: Restart Cluster
   uri:

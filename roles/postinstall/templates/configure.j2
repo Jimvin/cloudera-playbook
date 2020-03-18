@@ -1,0 +1,89 @@
+#!/bin/bash -x
+
+KEYTAB=$(ls -1dt /var/run/cloudera-scm-agent/process/*-hive-HIVESERVER2 | head -1)/hive.keytab
+PRINC_NAME=$(klist -kt ${KEYTAB} | grep hive | awk '{print $4;}' | tail -1)
+
+kinit -kt ${KEYTAB} ${PRINC_NAME}
+
+export HADOOP_PROXY_USER=hdfs
+
+{% for path in hdfs %}
+  hdfs dfs -mkdir {{ path.spec }}
+  hdfs dfs -chmod {{ path.mode}} {{ path.spec }}
+  hdfs dfs -chown {{ path.owner }}:{{ path.group }} {{ path.spec }}
+  {% if (path.acls is defined) %}
+    {% for acl in path.acls %}
+      hdfs dfs -setfacl -m {{ acl }} {{ path.spec }}
+    {% endfor %}
+  {% endif %}
+{% endfor %}
+
+unset HADOOP_PROXY_USER
+
+impala-shell -i {{ hostvars[groups['haproxy'][0]]['inventory_hostname'] }}:25003 -d default -k --ssl --ca_cert {{ tls.cert_chain }} << EOF
+
+{% for role in sentry_roles %}
+  CREATE ROLE {{ role.name }};
+  {% for group in role.groups %}
+    GRANT ROLE {{ role.name }} TO GROUP {{ group }};
+  {% endfor %}
+{% endfor %}
+
+{% for db in databases %}
+  CREATE DATABASE IF NOT EXISTS {{ db.name }}
+  {% if (db.location is defined) %}
+    LOCATION '{{ db.location }}'
+  {% endif %}
+  ;
+
+  {% for priv in db.privileges %}
+    GRANT {{ priv.type }} ON DATABASE {{ db.name }} TO ROLE {{ priv.rolename }}
+    {% if priv.withgrantoption == 'True' %}
+      WITH GRANT OPTION
+    {% endif %}
+    ;
+  {% endfor %}
+
+  {% if (db.owner.role is defined) %}
+    ALTER DATABASE {{ db.name }} SET OWNER ROLE {{ db.owner.role }};
+  {% endif %}
+
+  {% if (db.owner.name is defined) %}
+    ALTER DATABASE {{ db.name }} SET OWNER USER {{ db.owner.name }};
+  {% endif %}
+
+  USE {{ db.name }};
+
+  {% for table in db.tables %}
+    {{ table.ddl }}
+
+    {% for priv in table.privileges %}
+      GRANT {{ priv.type }} ON TABLE {{ table.name }} TO ROLE {{ priv.rolename }}
+      {% if priv.withgrantoption == 'True' %}
+        WITH GRANT OPTION
+      {% endif %}
+      ;
+    {% endfor %}
+  {% endfor %}
+{% endfor %}
+exit;
+
+EOF
+
+export HADOOP_PROXY_USER=hbase
+
+hbase shell << EOF
+grant '*', 'X', 'hbase:meta'
+grant '*', 'RWXC', '@default'
+
+{% for namespace in hbasecnf.namespaces %}
+  create_namespace '{{ namespace.name }}'
+  {% for priv in namespace.privileges %}
+    grant '{{ priv.ug }}', '{{ priv.privs }}', '@{{ namespace.name }}'
+  {% endfor %}
+{% endfor %}
+
+EOF
+
+
+kdestroy

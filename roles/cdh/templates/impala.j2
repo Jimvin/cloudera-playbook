@@ -13,6 +13,11 @@
     }, {
       "name" : "hive_service",
       "ref" : "HIVE-1"
+    {% if (cdh_services | json_query('[?type==`kudu`]') | length > 0) %}
+    }, {
+      "name" : "kudu_service",
+      "ref" : "kudu"
+    {% endif %}
     }, {
       "name" : "all_admission_control_enabled",
       "value" : "false"

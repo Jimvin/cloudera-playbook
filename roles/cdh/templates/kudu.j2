@@ -1,0 +1,70 @@
+{
+    "refName" : "kudu",
+    "serviceType" : "KUDU",
+    "serviceConfigs" : [ {
+      "name" : "user_acl",
+      "value" : "impala"
+    }, {
+      "name" : "enable_security",
+      "variable" : "KUDU_SECURITY"
+    } ],
+    "roleConfigGroups" : [ {
+      "refName" : "kudu-KUDU_MASTER-BASE",
+      "roleType" : "KUDU_MASTER",
+      "configs" : [
+      {% if (cdh_tls) %}
+      {
+        "name" : "ssl_server_ca_certificate_location",
+        "value" : "{{ tls.cert_chain }}"
+      }, {
+        "name" : "ssl_enabled",
+        "value" : "true"
+      }, {
+        "name" : "ssl_server_privatekey_location",
+        "value" : "{{ tls.private_key }}"
+      }, {
+        "name" : "ssl_server_privatekey_password",
+        "value" : "{{ tls.keystore_password }}"
+      }, {
+        "name" : "ssl_server_certificate_location",
+        "value" : "{{ tls.tls_cert }}"
+      },
+      {% endif %}
+      {
+        "name" : "fs_wal_dir",
+        "variable" : "MASTER_WAL_DIR"
+      }, {
+        "name" : "fs_data_dirs",
+        "variable" : "MASTER_DATA_DIR"
+      } ],
+      "base" : true
+    }, {
+      "refName" : "kudu-KUDU_TSERVER-BASE",
+      "roleType" : "KUDU_TSERVER",
+      "configs" : [ {
+        "name" : "fs_wal_dir",
+        "variable" : "TSERVER_WAL_DIR"
+      }, {
+        "name" : "fs_data_dirs",
+        "variable" : "TSERVER_DATA_DIR"
+      {% if (cdh_tls) %}
+      }, {
+        "name" : "ssl_server_ca_certificate_location",
+        "value" : "{{ tls.cert_chain }}"
+      }, {
+        "name" : "ssl_enabled",
+        "value" : "true"
+      }, {
+        "name" : "ssl_server_privatekey_location",
+        "value" : "{{ tls.private_key }}"
+      }, {
+        "name" : "ssl_server_privatekey_password",
+        "value" : "{{ tls.keystore_password }}"
+      }, {
+        "name" : "ssl_server_certificate_location",
+        "value" : "{{ tls.tls_cert }}"
+      {% endif %}
+      } ],
+      "base" : true
+    } ]
+  }

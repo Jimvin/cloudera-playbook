@@ -1,0 +1,47 @@
+---
+
+- include_vars: "{{ inventory_dir }}/group_vars/cdh_servers.yml"
+
+#- name: CDSW Shutdown
+#  shell: "docker ps -a --filter name=k8s_ -q | xargs -r docker rm --force --volumes"
+#  ignore_errors: true
+
+#docker rm --force $(docker ps -aq) 2>/dev/null || true
+#systemctl stop docker
+#systemctl disable docker
+#cleanup-network-interfaces.sh
+
+- name: CDSW Reset Kube Cluster
+  shell: "/opt/cloudera/parcels/CDSW/scripts/cdsw-reset-kube-cluster.sh"
+  ignore_errors: true
+
+- name: CDSW Cleanup Network Interfaces
+  shell: "/opt/cloudera/parcels/CDSW/scripts/cleanup-network-interfaces.sh"
+  ignore_errors: true
+
+- name: CDSW Dir Delete
+  shell: "rm /var/lib/cdsw/* -rf"
+  ignore_errors: true
+
+- name: Docker Dir Delete
+  shell: "rm /var/lib/docker/* -rf"
+  ignore_errors: true
+
+- name: Remove Dockers logical volume (docker/thinpool)
+  lvol:
+    vg: docker
+    lv: thinpool
+    state: absent
+    force: yes
+
+- name: Remove Dockers volume group (docker)
+  lvg:
+    vg: docker
+    state: absent
+
+- name: Delete Dockers physical volume
+  shell: "pvremove {{ cdh_services | json_query('[?type==`cdsw`].cdsw_docker_device') | first }}"
+  ignore_errors: True
+
+- name: DD over first 10MB
+  shell: "dd if=/dev/zero of={{ cdh_services | json_query('[?type==`cdsw`].cdsw_docker_device') | first }} bs=1M count=10 oflag=direct"

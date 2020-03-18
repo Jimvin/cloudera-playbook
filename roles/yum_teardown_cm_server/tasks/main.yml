@@ -1,5 +1,7 @@
 ---
 
+- include_vars: "{{ inventory_dir }}/group_vars/scm_server.yml"
+
 - name: Remove the Cloudera Manager Server Packages
   yum:
     name:

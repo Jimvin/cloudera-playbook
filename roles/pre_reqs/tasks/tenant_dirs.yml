@@ -1,0 +1,22 @@
+
+---
+
+- name: Create tenant direcotries
+  file:
+    path: "{{ item.value.path }}"
+    state: directory
+    mode: "{{ item.value.mode }}"
+    owner: "{{ item.value.owner }}"
+    group: "{{ item.value.group }}"
+  with_dict: "{{ host_custom_dirs }}"
+  when: host_custom_dirs is defined
+
+- name: Apply ACLs to tenant directories
+  acl:
+    path: "{{ item.0.path }}"
+    entry: "{{ item.1 }}"
+    state: present
+  with_subelements:
+    - "{{ host_custom_dirs }}"
+    - acls
+  when: host_custom_dirs is defined

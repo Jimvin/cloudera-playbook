@@ -1,0 +1,178 @@
+---
+
+- include_vars: "{{ inventory_dir }}/group_vars/scm_server.yml"
+- include_vars: "{{ inventory_dir }}/group_vars/scm_server_enc.yml"
+- include_vars: "{{ inventory_dir }}/group_vars/cdh_servers.yml"
+- include_vars: "{{ inventory_dir }}/group_vars/pki.yml"
+- include_vars: "{{ inventory_dir }}/group_vars/postinstall.yml"
+- include_vars: "{{ inventory_dir }}/group_vars/ldap_enc.yml"
+
+- set_fact: cm_api_url={{ "https://{{ hostvars[scm_hostname]['inventory_hostname'] }}:{{ scm_port_tls }}" if scm_web_tls==True else "http://{{ hostvars[scm_hostname]['inventory_hostname'] }}:{{ scm_port }}" }}
+
+- name: Get Cloudera Manager API version
+  uri:
+    url: "{{ cm_api_url }}/api/version"
+    method: GET
+    status_code: 200
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: result
+
+- set_fact: cm_api_url="{{ cm_api_url }}/api/{{ result.content }}"
+
+- name: Prepare HDFS template
+  local_action:
+    module: template
+    src: "hdfs.j2"
+    dest: "{{ tmp_dir }}/hdfs.json"
+    mode: 0777
+
+- name: Update HDFS settings
+  uri:
+    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}/services/hdfs/config"
+    method: PUT
+    body_format: json
+    body: "{{ lookup('file', ''+ tmp_dir + '/hdfs.json') }}"
+    status_code: 200
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    return_content: yes
+  run_once: true
+  register: hdfs_resp
+
+- name: Restart Cluster to pick up umask changes
+  uri:
+    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}/commands/restart"
+    method: POST
+    status_code: 200
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    body_format: "json"
+    body:
+       restartOnlyStaleServices: true
+       redeployClientConfiguration: true
+    return_content: yes
+  register: cluster_restart_resp
+  run_once: true
+
+- debug: var=cluster_restart_resp
+
+- set_fact: command_id="{{ cluster_restart_resp.json.id }}"
+
+- name: Wait for service to start
+  uri:
+    url: "{{ cm_api_url }}/commands/{{ command_id }}"
+    body_format: json
+    status_code: 200
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    return_content: yes
+  register: cluster_start_result
+  until: cluster_start_result.json.active == false
+  retries: 25
+  delay: 30
+  run_once: true
+
+- name: Deploy Cluster Client Config
+  uri:
+    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}/commands/deployClientConfig"
+    method: POST
+    status_code: 200
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    body_format: "json"
+    return_content: yes
+  register: cluster_conf_resp
+  run_once: true
+
+- set_fact: command_id="{{ cluster_conf_resp.json.id }}"
+
+- name: Wait for client config to be deployed
+  uri:
+    url: "{{ cm_api_url }}/commands/{{ command_id }}"
+    body_format: json
+    status_code: 200
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    return_content: yes
+  register: cluster_conf_result
+  until: cluster_conf_result.json.active == false
+  retries: 25
+  delay: 30
+  run_once: true
+
+
+- name: Prepare HDFS/Sentry/Hive/HBase script
+  template:
+    src: "configure.j2"
+    dest: "{{ tmp_dir }}/configure.sh"
+    mode: 0777
+  when: "'gatewayen_servers' in group_names"
+
+- name: Prepare Solr script
+  template:
+    src: "solr.j2"
+    dest: "{{ tmp_dir }}/solr.sh"
+    mode: 0777
+  when: "'worker_servers' in group_names"
+
+- name: Prepare CDSW script
+  template:
+    src: "cdsw.j2"
+    dest: "{{ tmp_dir }}/cdsw-init.sh"
+    mode: 0777
+  when: "'cdsw_master' in group_names"
+
+- name: Prepare Hue script
+  template:
+    src: "hue.j2"
+    dest: "{{ tmp_dir }}/hue-init.sh"
+    mode: 0777
+  when: "'gatewayen_servers' in group_names"
+
+- name: Prepare Kafka script
+  template:
+    src: "kafka.j2"
+    dest: "{{ tmp_dir }}/kafka-init.sh"
+    mode: 0777
+  when: "'kafka_brokers' in group_names"
+
+- name: Run HDFS/Sentry/Hive/HBase script
+  command: "{{ tmp_dir }}/configure.sh"
+  run_once: true
+  register: configure_out
+  delegate_to: "{{ hostvars[groups['gatewayen_servers'][0]]['inventory_hostname'] }}"
+
+- name: Run Solr script
+  command: "{{ tmp_dir }}/solr.sh"
+  run_once: true
+  register: solr_out
+  delegate_to: "{{ hostvars[groups['worker_servers'][0]]['inventory_hostname'] }}"
+
+- name: Run CDSW script
+  command: "{{ tmp_dir }}/cdsw-init.sh"
+  run_once: true
+  register: cdsw_out
+  delegate_to: "{{ hostvars[groups['cdsw_master'][0]]['inventory_hostname'] }}"
+  when: "groups['cdsw_master'] is defined and (groups['cdsw_master'] | length>0) and (cdh_services | json_query('[?type==`cdsw`]') | length > 0)"
+
+- name: Run Kafka script
+  command: "{{ tmp_dir }}/kafka-init.sh"
+  register: kafka_out
+  run_once: true
+  delegate_to: "{{ hostvars[groups['kafka_brokers'][0]]['inventory_hostname'] }}"
+  when: " groups['kafka_brokers'] is defined and (groups['kafka_brokers'] | length>0) and (cdh_services | json_query('[?type==`kafka`]') | length > 0)"
+
+- name: Run Hue script
+  command: "{{ tmp_dir }}/hue-init.sh"
+  run_once: true
+  register: hue_out
+  delegate_to: "{{ hostvars[groups['gatewayen_servers'][0]]['inventory_hostname'] }}"
+

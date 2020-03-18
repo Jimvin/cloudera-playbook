@@ -60,7 +60,11 @@
     }, {
       "name": "hbase_service",
       "ref": "HBASE-1"
-
+    {% if (cdh_services | json_query('[?type==`kudu`]') | length > 0) %}
+    }, {
+      "name": "kudu_service",
+      "ref": "kudu"
+    {% endif %}
     }
   ],
   "roleConfigGroups": [

@@ -1,0 +1,32 @@
+#!/bin/bash -x
+
+KEYTAB=$(ls -1dt /var/run/cloudera-scm-agent/process/*-solr-SOLR_SERVER | head -1)/solr.keytab
+PRINC_NAME=$(klist -kt ${KEYTAB} | grep solr | awk '{print $4;}' | tail -1)
+
+kinit -kt ${KEYTAB} ${PRINC_NAME}
+
+{% for role in solr.roles %}
+  solrctl sentry --create-role {{ role.name }}
+  {% for group in role.groups %}
+    solrctl sentry --add-role-group {{ role.name }}  {{ group }}
+
+  {% endfor %}
+{% endfor %}
+
+{% for priv in solr.privileges %}
+  {% for privilege in priv.privilege %}
+    solrctl sentry --grant-privilege {{ priv.role }} '{{ privilege }}'
+  {% endfor %}
+{% endfor %}
+
+{% for config in solr.configs %}
+  solrctl config --create {{ config.name }} {{ config.base }} -p {{ config.p }}
+{% endfor %}
+
+export $(grep -o "SOLR_ZK_ENSEMBLE='[a-zA-Z0-9.:,/-]*'" $(ls -1dt /var/run/cloudera-scm-agent/process/*-solr-SOLR_SERVER | head -1)/supervisor.conf | sed "s/'//g")
+
+{% for collection in solr.collections %}
+  solrctl collection --create {{ collection.name }} -s {{ collection.shards }} -c {{ collection.config }} -r {{ collection.replication_factor }} {{ collection.opts }}
+{% endfor %}
+
+kdestroy

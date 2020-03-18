@@ -33,10 +33,32 @@
       "roleType" : "KAFKA_BROKER",
       "configs" : [ {
         "name" : "log.retention.ms",
-        "value" : "600000"
+        "variable" : "KAFKA_LOG_RETENTION"
+      }
+      {% if (cdh_tls) %}
+       , {
+        "name" : "ssl_client_truststore_location",
+        "value" : "{{ tls.truststore_path }}"
       }, {
+        "name" : "ssl_client_truststore_password",
+        "value" : "{{ tls.truststore_password }}"
+      }, {
+        "name" : "ssl_enabled",
+        "value" : "true"
+      }, {
+        "name" : "ssl_server_keystore_location",
+        "value" : "{{ tls.keystore_path }}"
+      }, {
+        "name" : "ssl_server_keystore_password",
+        "value" : "{{ tls.keystore_password }}"
+      }
+      {% endif %}
+      , {
         "name" : "kafka.properties_role_safety_valve",
-        "value" : "offsets.retention.minutes=40320\nsasl.kerberos.principal.to.local.rules=RULE:[1:$1@$0](.*@{{ trusted_realm|upper }})s/@{{ trusted_realm|upper }}// , RULE:[2:$1@$0](.*@{{ trusted_realm|upper }})s/@{{ trusted_realm|upper }}//,DEFAULT"
+        "value" : "offsets.retention.minutes=40320\nsasl.kerberos.principal.to.local.rules={% for trusted_realm in trusted_realms %}RULE:[1:$1@$0](.*@{{ trusted_realm|upper }})s/@{{ trusted_realm|upper }}// , RULE:[2:$1@$0](.*@{{ trusted_realm|upper }})s/@{{ trusted_realm|upper }}{% endfor %}//,DEFAULT"
+      }, {
+        "name" : "log.dirs",
+        "variable" : "KAFKA_DATA_LOG_DIRS"
       }, {
         "name" : "super.users",
         "value" : "kafka"

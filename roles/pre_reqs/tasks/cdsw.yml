@@ -1,0 +1,53 @@
+---
+
+- name: CDSW Directory Exists
+  file:
+    path: "/var/lib/cdsw"
+    state: directory
+
+- set_fact:
+   varlibcdsw: "{{ ansible_mounts | json_query('[?mount == `/var/lib/cdsw`].size_total') | first }}"
+
+- name:
+  assert:
+    that: varlibcdsw > 500 * 1024 * 1024 * 1024
+  when: "'cdsw_master' in groups"
+
+- name: Check Block Device Exists
+  shell: "lsblk {{ cdh_services | json_query('[?type==`cdsw`].cdsw_docker_device') | first }} | grep disk"
+
+- name: Check Block Device is not mounted
+  shell: "mount | grep {{ cdh_services | json_query('[?type==`cdsw`].cdsw_docker_device') | first }}"
+  register: result
+  failed_when: result.rc != 1
+
+- name: Iptables Accept
+  iptables:
+    policy: ACCEPT
+    chain: "{{ item }}"
+  with_items:
+    - "INPUT"
+    - "FORWARD"
+    - "OUTPUT"
+
+- name: Iptables Flush
+  iptables:
+    flush: yes
+    table: "{{ item }}"
+  with_items:
+    - "nat"
+    - "mangle"
+    - "filter"
+
+- name: Check IPv6 Enabled
+  shell: "sysctl -a | grep ipv6 | grep disable | grep 1 | wc -l"
+  register: result
+
+- name: Check IPv6 In sysctl
+  assert:
+    that: result.stdout == "0"
+  ignore_errors: true
+
+- name: Check IPv6 addresses in ifconfig
+  shell: "ifconfig -a | grep inet6"
+  ignore_errors: true

@@ -1,0 +1,7 @@
+{
+  "items" : [ {
+      "name" : "dfs_umaskmode",
+      "value" : "{{ cdh_services | json_query('[?type==`hdfs`].dfs_umaskmode') | first | default('022') }}"
+    }
+  ]
+}

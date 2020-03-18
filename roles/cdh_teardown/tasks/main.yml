@@ -18,8 +18,13 @@
     force_basic_auth: yes
     return_content: yes
   register: result
+  ignore_errors: true
 
 - set_fact: cm_api_url="{{ cm_api_url }}/api/{{ result.content }}"
+  ignore_errors: true
+
+- set_fact: api_available="{{ 'True' if result.content is defined else 'False' }}"
+
 
 # Check whether cluster already exists
 # https://cloudera.github.io/cm_api/apidocs/v13/path__clusters.html
@@ -33,13 +38,18 @@
     password: "{{ scm_default_pass }}"
     return_content: yes
   register: clusters_resp
-  ignore_errors: true
+  when: api_available == True
 
 - set_fact: cluster_exists={{ 'True' if clusters_resp.status == 200 else 'False' }}
+  when: api_available == True
+
+- set_fact: cluster_exists=False
+  when: cluster_exists is undefined
+
 - debug: msg="Cluster '{{ cluster_display_name }}' exists - {{ cluster_exists }}"
+  when: api_available == True
 
 # https://cloudera.github.io/cm_api/apidocs/v13/path__clusters-clusterName-commands-stop.html
-
 - name: Stop cluster
   uri:
     url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}/commands/stop"
@@ -61,7 +71,7 @@
 
 # https://cloudera.github.io/cm_api/apidocs/v13/path__commands.html
 - name: Wait for cluster to stop
-  uri:  
+  uri:
     url: "{{ cm_api_url }}/commands/{{ command_id }}"
     body_format: json
     status_code: 200
@@ -74,9 +84,6 @@
   until: result.json.active == false
   retries: 10
   delay: 30
- 
-- debug: var=result 
-
 
 # https://cloudera.github.io/cm_api/apidocs/v13/path__clusters-clusterName-commands-stop.html
 - name: Delete cluster

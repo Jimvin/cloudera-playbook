@@ -1,0 +1,25 @@
+#!/bin/bash
+
+KEYTAB=$(ls -1dt /var/run/cloudera-scm-agent/process/*-kafka-KAFKA_BROKER | head -1)/kafka.keytab
+PRINC_NAME=$(klist -kt ${KEYTAB} | grep kafka | awk '{print $4;}' | tail -1)
+ZK_LIST={{ hostvars[groups['master_servers'][0]]['inventory_hostname'] }}:2181,{{ hostvars[groups['master_servers'][1]]['inventory_hostname'] }}:2181,{{ hostvars[groups['master_servers'][2]]['inventory_hostname'] }}:2181
+
+kinit -kt ${KEYTAB} ${PRINC_NAME}
+
+{% for topic in kafka %}
+  kafka-topics \
+ --zookeeper ${ZK_LIST}/kafka \
+ --create \
+ --partitions {{ topic.partitions }} \
+ --replication-factor {{ topic.replication }} \
+ {% if (topic.configs is defined) %}
+    {% for config in topic.configs %}
+      --config {{ config }} \
+    {% endfor %}
+ {% endif %}
+  --topic {{ topic.name }}
+{% endfor %}
+
+
+kafka-topics --zookeeper ${ZK_LIST}  --list
+

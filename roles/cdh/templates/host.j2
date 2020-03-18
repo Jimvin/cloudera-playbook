@@ -20,6 +20,9 @@
     "HUE-1-HUE_LOAD_BALANCER-BASE",
     "SENTRY-1-GATEWAY-BASE",
     "SOLR-1-GATEWAY-BASE",
+    {% if groups['kafka_brokers'] is defined and (groups['kafka_brokers'] | length>0) and (cdh_services | json_query('[?type==`kafka`]') | length > 0) %}
+    "KAFKA-1-GATEWAY-BASE",
+    {% endif %}
     "YARN-1-GATEWAY-BASE" ]
 }, {
  "refName": "HostTemplate-GatewayEdge",
@@ -32,6 +35,7 @@
     {% if (krb5_kdc_type == 'ad') or (krb5_kdc_type == 'mit') %}
     "HUE-1-KT_RENEWER-BASE",
     {% endif %}
+    "HIVE-1-HIVESERVER2-BASE",
     "SPARK_ON_YARN-1-GATEWAY-BASE",
     {% if cluster_version_cdh_major < '6' %}
     "SPARK2_ON_YARN-1-GATEWAY-BASE",
@@ -40,6 +44,9 @@
     "HBASE-1-HBASETHRIFTSERVER-BASE",
     "SENTRY-1-GATEWAY-BASE",
     "SOLR-1-GATEWAY-BASE",
+    {% if groups['kafka_brokers'] is defined and (groups['kafka_brokers'] | length>0) and (cdh_services | json_query('[?type==`kafka`]') | length > 0) %}
+    "KAFKA-1-GATEWAY-BASE",
+    {% endif %}
     "YARN-1-GATEWAY-BASE" ]
 }, {
   "refName": "HostTemplate-Master1",
@@ -52,6 +59,9 @@
     "ZOOKEEPER-1-SERVER-BASE",
     "YARN-1-RESOURCEMANAGER-BASE",
     "HBASE-1-MASTER-BASE",
+    {% if (cdh_services | json_query('[?type==`kudu`]') | length > 0) %}
+    "kudu-KUDU_MASTER-BASE",
+    {% endif %}
     "HIVE-1-HIVEMETASTORE-BASE" ]
 }, {
   "refName": "HostTemplate-Master2",
@@ -64,6 +74,9 @@
     "ZOOKEEPER-1-SERVER-BASE",
     "YARN-1-RESOURCEMANAGER-BASE",
     "HBASE-1-MASTER-BASE",
+    {% if (cdh_services | json_query('[?type==`kudu`]') | length > 0) %}
+    "kudu-KUDU_MASTER-BASE",
+    {% endif %}
     "HIVE-1-HIVEMETASTORE-BASE" ]
 }, {
   "refName": "HostTemplate-Master3",
@@ -91,29 +104,47 @@
     "HBASE-1-REGIONSERVER-BASE",
     "SOLR-1-SOLR_SERVER-BASE",
     "HIVE-1-GATEWAY-BASE",
+    {% if (cdh_services | json_query('[?type==`kudu`]') | length > 0) %}
+    "kudu-KUDU_TSERVER-BASE",
+    {% endif %}
     {% if cluster_version_cdh_major < '6' %}
     "SPARK2_ON_YARN-1-GATEWAY-BASE",
     {% endif %}
     "SPARK_ON_YARN-1-GATEWAY-BASE" ]
 }
-{% if (krb5_kdc_type == 'neverever') %}, {
+{% if groups['cdsw_master'] is defined and (groups['cdsw_master'] | length>0) %}
+ , {
   "refName" : "HostTemplate-CDSWMaster",
   "cardinality" : 0,
-  "roleConfigGroupsRefNames" : [ 
-    "CDSW-1-CDSW_APPLICATION-BASE", 
+  "roleConfigGroupsRefNames" : [
+    "CDSW-1-CDSW_APPLICATION-BASE",
     "CDSW-1-CDSW_DOCKER-BASE",
     "CDSW-1-CDSW_MASTER-BASE",
-    "HDFS-1-GATEWAY-BASE", 
-    "HIVE-1-GATEWAY-BASE", 
+    "HDFS-1-GATEWAY-BASE",
+    "HIVE-1-GATEWAY-BASE",
+    "SPARK_ON_YARN-1-GATEWAY-BASE",
     "YARN-1-GATEWAY-BASE" ]
-}, {
+}
+{% endif %}
+{% if groups['cdsw_workers'] is defined and (groups['cdsw_workers'] | length>0) %}
+, {
     "refName" : "HostTemplate-CDSWWorker",
     "cardinality" : 0,
-    "roleConfigGroupsRefNames" : [ 
-    "CDSW-1-CDSW_DOCKER-BASE", 
+    "roleConfigGroupsRefNames" : [
+    "CDSW-1-CDSW_DOCKER-BASE",
     "CDSW-1-CDSW_WORKER-BASE",
-    "HDFS-1-GATEWAY-BASE", 
+    "HDFS-1-GATEWAY-BASE",
     "HIVE-1-GATEWAY-BASE",
+    "SPARK_ON_YARN-1-GATEWAY-BASE",
     "YARN-1-GATEWAY-BASE" ]
-}{% endif %}
+}
+{% endif %}
+{% if groups['kafka_brokers'] is defined and (groups['kafka_brokers'] | length>0) %}
+, {
+    "refName" : "HostTemplate-KafkaBroker",
+    "cardinality" : 0,
+    "roleConfigGroupsRefNames" : [
+    "KAFKA-1-KAFKA_BROKER-BASE" ]
+}
+{% endif %}
 ]

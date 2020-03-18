@@ -6,7 +6,7 @@
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/db_server.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/krb5_server.yml"
-- include_vars: "{{ inventory_dir }}/group_vars/tls_enc.yml"
+- include_vars: "{{ inventory_dir }}/group_vars/pki.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/ldap_enc.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server_enc.yml"
 
@@ -94,7 +94,7 @@
     src: "kts.j2"
     dest: "{{ tmp_dir }}/kts.json"
     mode: 0777
-  when: 
+  when:
     - cluster_exists == False
 
 #- debug: var= "{{ lookup('file', ''+ tmp_dir + '/cluster.json') }}"
@@ -157,7 +157,7 @@
     - cluster_exists == False
 
 - name: Create temp dir for Fetching Keys
-  file: 
+  file:
     path: /tmp/kts
     state: directory
     owner: root

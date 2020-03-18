@@ -5,7 +5,7 @@
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/db_server.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/krb5_server.yml"
-- include_vars: "{{ inventory_dir }}/group_vars/tls_enc.yml"
+- include_vars: "{{ inventory_dir }}/group_vars/pki.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/ldap_enc.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server_enc.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/kms_servers.yml"
@@ -130,7 +130,7 @@
     return_content: yes
   register: frw_result
   until: frw_result.json.active == false
-  retries: 25
+  retries: 50
   delay: 60
 
 - debug: msg="Cluster Kerberos Deployment Type - {{ krb5_kdc_type }}"
@@ -144,4 +144,4 @@
     user: "{{ scm_default_user }}"
     password: "{{ scm_default_pass }}"
     return_content: yes
-  when: krb5_kdc_type != 'none'  
+  when: krb5_kdc_type != 'none'

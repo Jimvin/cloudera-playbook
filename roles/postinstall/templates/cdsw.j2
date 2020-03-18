@@ -1,0 +1,31 @@
+#!/bin/bash
+
+kubectl exec -it $(kubectl get pods -l role=db -o jsonpath='{.items[*].metadata.name}') -- psql -U sense -c " \
+UPDATE site_config \
+SET \
+auth_type = 'ldap', \
+ldap_server_uri = '{{ ldap_udom.url }}', \
+ldap_bind_dn = '{{ ldap_udom.bind_dn }}', \
+ldap_bind_credentials = '{{ ldap_udom.bind_pass }}', \
+ldap_search_base = '{{ ldap_udom.base_dn }}', \
+ldap_user_filter = null, \
+ldap_user_username_attr = '{{ ldap_udom.user_name_attr }}', \
+ldap_user_search_attr = null, \
+ldap_use_direct_bind = 'f', \
+smtp_host = '{{ smtp_host }}', \
+smtp_port = '{{ smtp_port }}', \
+smtp_password = '', \
+smtp_tls = 'f', \
+no_reply_email =  '{{ smtp_from }}', \
+ldap_username_pattern = null, \
+ldap_user_groups = null, \
+ldap_group_search_base = '{{ ldap_udom.base_dn }}', \
+ldap_group_search_filter = '{{ ldap_udom.group_member_attr}}={0}', \
+ldap_full_admin_groups = '[\"{{ ldap_udom.cdsw_admin_group }}\"]', \
+/*ldap_user_dn_attr_override = null,*/ \
+enable_analytics = 'f'; \
+"
+
+kubectl exec -it $(kubectl get pods -l role=db -o jsonpath='{.items[*].metadata.name}') -- psql -U sense -c " \
+UPDATE site_config \
+SET ca_cert = '$(cat {{ tls.cert_chain }})'"

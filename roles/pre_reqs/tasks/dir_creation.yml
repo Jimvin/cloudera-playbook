@@ -1,0 +1,73 @@
+- include_vars: "{{ inventory_dir }}/group_vars/scm_server.yml"
+
+- name: Permission master dirs on Master Nodes
+  file:
+    path: "{{ item.split('/')[0:-1] | join('/') }}"
+    owner: root
+    group: root
+    mode: '0755'
+    state: directory
+  when: (cluster_version_cdh_major == "5" and host_template is defined and (host_template=="HostTemplate-Master1" or host_template=="HostTemplate-Master2") )
+  with_items: "{{ (cdh_services | json_query('[?type==`hdfs`].dfs_name_dir_list') | first).split(',') }}"
+
+- name: Permission master dirs on Master Nodes
+  file:
+    path: "{{ item }}"
+    owner: hdfs
+    group: hadoop
+    mode: '0700'
+    state: directory
+  when: (cluster_version_cdh_major == "5" and host_template is defined and (host_template=="HostTemplate-Master1" or host_template=="HostTemplate-Master2") )
+  with_items: "{{ (cdh_services | json_query('[?type==`hdfs`].dfs_name_dir_list') | first).split(',') }}"
+
+- name: Permission master dirs on Journal Nodes
+  file:
+    path: "{{ item.split('/')[0:-1] | join('/') }}"
+    owner: root
+    group: root
+    mode: '0755'
+    state: directory
+  when: (cluster_version_cdh_major == "5" and 'master_servers' in group_names)
+  with_items: "{{ (cdh_services | json_query('[?type==`hdfs`].dfs_journalnode_edits_dir') | first).split(',') }}"
+
+- name: Permission master dirs on Master Nodes
+  file:
+    path: "/{{ item.split('/')[1] }}"
+    owner: root
+    group: root
+    mode: '0755'
+    state: directory
+  when: ('master_servers' in group_names)
+  with_items: "{{ (cdh_services | json_query('[?type==`hdfs`].dfs_name_dir_list') | first).split(',') }}"
+
+
+- name: Permission data dirs on Journal Nodes
+  file:
+    path: "{{ item }}"
+    owner: hdfs
+    group: hadoop
+    mode: '0700'
+    state: directory
+  when: (cluster_version_cdh_major == "5" and 'master_servers' in group_names)
+  with_items: "{{ (cdh_services | json_query('[?type==`hdfs`].dfs_journalnode_edits_dir') | first).split(',') }}"
+
+- name: Permission data dirs on Data Nodes
+  file:
+    path: "/{{ item.split('/')[1] }}"
+    owner: root
+    group: root
+    mode: '0755'
+    state: directory
+  when: ('worker_servers' in group_names)
+  with_items: "{{ (cdh_services | json_query('[?type==`hdfs`].dfs_data_dir_list') | first).split(',') }}"
+
+
+- name: Permission data dirs on Data Nodes
+  file:
+    path: "{{ item.split('/')[0:-1] | join('/') }}"
+    owner: root
+    group: root
+    mode: '0755'
+    state: directory
+  when: (cluster_version_cdh_major == "5" and 'worker_servers' in group_names)
+  with_items: "{{ (cdh_services | json_query('[?type==`hdfs`].dfs_data_dir_list') | first).split(',') }}"
