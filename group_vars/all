@@ -23,8 +23,8 @@ cluster_version_cdh: 5.16.2
 
 # Version of Cloudera Manager to install
 cluster_version_cm:  5.16.2
-cluster_version_cm:  "{{ cluster_version_cdh }}"
-cluster_version_cm:  7.1.1
+#cluster_version_cm:  "{{ cluster_version_cdh }}"
+#cluster_version_cm:  7.1.1
 
 # Version of CDS Powered by Apache Spark (note: not installed if CDH6/7 is also selected)
 cluster_version_cds: 2.4.0.cloudera2
