@@ -8,7 +8,6 @@
 - include_vars: "{{ inventory_dir }}/group_vars/krb5_server.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/pki.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/ldap_enc.yml"
-- include_vars: "{{ inventory_dir }}/group_vars/scm_server_enc.yml"
 
 - set_fact: cm_api_url={{ "https://{{ hostvars[scm_hostname]['inventory_hostname'] }}:{{ scm_port_tls }}" if scm_web_tls==True else "http://{{ hostvars[scm_hostname]['inventory_hostname'] }}:{{ scm_port }}" }}
 
@@ -87,6 +86,22 @@
 - set_fact: cluster_exists={{ 'True' if clusters_resp.status == 200 else 'False' }}
 - debug: msg="Cluster '{{ kts_display_name }}' exists - {{ cluster_exists }}"
 
+
+- name: Discover product versions from parcel manifests
+  uri:
+    url: "{{ item }}/manifest.json"
+    status_code: 200
+    body_format: json
+    return_content: yes
+  register: manifests
+  with_items: 
+    - "{{ scm_parcel_repositories }}"
+
+- set_fact:
+    scm_products: "{{ manifests.results | map(attribute='json') | list | json_query('[*].parcels[0].parcelName') | map('regex_replace', '-[a-z0-9]+.parcel$','') | list }}"
+
+- set_fact: 
+    kts_products: "{{ scm_products | select('match','CDH.*|KEYTRUSTEE_SERVER.*') | list }}"
 
 # https://www.cloudera.com/documentation/enterprise/latest/topics/install_cluster_template.html
 - name: Prepare cluster template

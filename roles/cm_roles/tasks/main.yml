@@ -2,7 +2,6 @@
 
 - include_vars: "{{ inventory_dir }}/group_vars/cdh_servers.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server.yml"
-- include_vars: "{{ inventory_dir }}/group_vars/scm_server_enc.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/krb5_server.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/ldap_enc.yml"
 

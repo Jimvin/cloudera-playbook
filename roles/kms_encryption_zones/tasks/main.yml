@@ -2,7 +2,6 @@
 
 - include_vars: "{{ inventory_dir }}/group_vars/cdh_servers.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/encryption_zones.yml"
-- include_vars: "{{ inventory_dir }}/group_vars/scm_server_enc.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server.yml"
 
 - set_fact: cm_api_url={{ "https://{{ hostvars[scm_hostname]['inventory_hostname'] }}:{{ scm_port_tls }}" if scm_web_tls==True else "http://{{ hostvars[scm_hostname]['inventory_hostname'] }}:{{ scm_port }}" }}
@@ -107,7 +106,7 @@
     user: "{{ scm_default_user }}"
     password: "{{ scm_default_pass }}"
     return_content: yes
-    run_once: true
+  run_once: true
 
 - name: Restart Cluster
   uri:

@@ -1,7 +1,6 @@
 ---
 
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server.yml"
-- include_vars: "{{ inventory_dir }}/group_vars/scm_server_enc.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/cdh_servers.yml"
 - include_vars: "{{ inventory_dir }}/group_vars/all"
 - include_vars: "{{ inventory_dir }}/group_vars/pki.yml"
@@ -227,7 +226,7 @@
     method: POST
     body_format: json
     body: "{{ lookup('file', ''+ tmp_dir + '/kmshosts.json') }}"
-    status_code: 200
+    status_code: 200, 400
     force_basic_auth: yes
     user: "{{ scm_default_user }}"
     password: "{{ scm_default_pass }}"
@@ -298,11 +297,27 @@
   run_once: true
   register: hdfs_resp
 
-- name: Check CDH parcel is activated on all hosts
+- name: Discover product versions from parcel manifests
   uri:
-    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}/parcels/products/CDH/versions/{{ scm_products | json_query('[?product==`CDH`].version') | first }}/"
+    url: "{{ item }}/manifest.json"
+    status_code: 200
+    body_format: json
+    return_content: yes
+  register: manifests
+  with_items:
+    - "{{ scm_parcel_repositories }}"
+
+- set_fact:
+    scm_products: "{{ manifests.results | map(attribute='json') | list | json_query('[*].parcels[0].parcelName') | map('regex_replace', '-[a-z0-9]+.parcel$','') | list }}"
+
+- set_fact:
+    kts_products: "{{ scm_products | select('match','CDH.*|KEYTRUSTEE_SERVER.*') | list }}"
+
+- name: Check parcels are activated on all hosts
+  uri:
+    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}/parcels/products/{{ item.split('-')[0] }}/versions/{{ '-'.join(item.split('-')[1:]) }}/"
     method: GET
-    status_code: 200,404
+    status_code: 200
     force_basic_auth: yes
     user: "{{ scm_default_user }}"
     password: "{{ scm_default_pass }}"
@@ -312,21 +327,7 @@
   retries: 25
   delay: 30
   run_once: true
-
-- name: Check KEYTRUSTEE parcel is activated on all hosts
-  uri:
-    url: "{{ cm_api_url }}/clusters/{{ cluster_display_name }}/parcels/products/KEYTRUSTEE/versions/{{ scm_products | json_query('[?product==`KEYTRUSTEE`].version') | first }}/"
-    method: GET
-    status_code: 200,404
-    force_basic_auth: yes
-    user: "{{ scm_default_user }}"
-    password: "{{ scm_default_pass }}"
-    return_content: yes
-  register: kms_parcel_result
-  until: kms_parcel_result.json.stage == "ACTIVATED"
-  retries: 25
-  delay: 5
-  run_once: true
+  with_items: "{{ kts_products }}"
 
 - name: Restart KMS Service
   uri:

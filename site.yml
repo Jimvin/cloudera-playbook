@@ -36,7 +36,6 @@
   hosts: db_server
   roles:
     - { role: mariadb, when: database_type == 'mysql' }
-    - { role: postgres, when: database_type == 'postgres' }
   tags: mysql
 
 - name: Install DB Connectors
@@ -69,17 +68,17 @@
     - certs
   tags: certs
 
-- name: Install certificates
-  hosts: all
-  roles:
-    - certs_signed_install
-  tags: certs_signed_install
-
 - name: Sign Certs
   hosts: ca_server
   roles:
     - ca_server_signing
   tags: ca_server_signing
+
+- name: Install certificates
+  hosts: all
+  roles:
+    - certs_signed_install
+  tags: certs_signed_install
 
 - name: Install Cloudera Manager Server
   hosts: scm_server
@@ -90,7 +89,7 @@
 - name: Map Cloudera Manager Roles to LDAP groups
   hosts: scm_server
   roles:
-    - cm_roles
+    - { role: cm_roles, when: cluster_version_cdh_major >= '6' }
   tags: [cm_roles, cm_install]
 
 - name: Install Cloudera Manager Agents - tls

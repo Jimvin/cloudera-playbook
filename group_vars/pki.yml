@@ -1,11 +1,23 @@
 ---
 
-security_root: "/opt/cloudera/security"
-keystore_name: "server.jks"
-root_ca_alias: RootCA
-intermediate_ca_alias: IntermediateCA
-keystore_password: password
-cacerts_file: /etc/pki/ca-trust/extracted/java/cacerts
-jssecacerts_file: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.242.b08-0.el7_7.x86_64/jre/lib/security/jssecacerts
-jssecacerts_pw: password
-keytool_path: keytool
+tls:
+  security_root: "/opt/cloudera/security"
+  keystore_name: "server.jks"
+  root_ca_alias: RootCA
+  intermediate_ca_alias: IntermediateCA
+  keystore_password: password
+  cacerts_file: /etc/pki/ca-trust/extracted/java/cacerts
+  jssecacerts_file: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.242.b08-0.el7_7.x86_64/jre/lib/security/jssecacerts
+  jssecacerts_pw: password
+  keytool_path: keytool
+  tls_cert: /opt/cloudera/security/x509/localhost.pem
+  cert_chain: /opt/cloudera/security/CAcerts/ca-chain.cert.pem
+  key_password_acl_groups: ["hue","kudu","cloudera-scm"]
+  key_password_file: /opt/cloudera/security/x509/key.pw
+  keystore_path: /opt/cloudera/security/jks/localhost.jks
+  private_key: /opt/cloudera/security/x509/localhost.key
+  private_key_unenc: /opt/cloudera/security/x509/localhost.key_unenc
+  truststore_password: password
+  truststore_path: /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.242.b08-0.el7_7.x86_64/jre/lib/security/jssecacerts
+  cert_dir: /opt/cloudera/security/CAcerts/
+  unenc_key_acl_groups: []

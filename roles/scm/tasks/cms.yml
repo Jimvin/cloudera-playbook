@@ -1,7 +1,6 @@
 ---
 
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server.yml"
-- include_vars: "{{ inventory_dir }}/group_vars/scm_server_enc.yml"
 
 # Wait for agents to send heartbeats in case SCM has just been restarted
 # Adding CMS will fail if host details haven't been reported in

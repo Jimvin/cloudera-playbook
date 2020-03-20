@@ -1,7 +1,6 @@
 ---
 
 - include_vars: "{{ inventory_dir }}/group_vars/scm_server.yml"
-- include_vars: "{{ inventory_dir }}/group_vars/scm_server_enc.yml"
 
 - name: Prepare local directories for kms files
   local_action:

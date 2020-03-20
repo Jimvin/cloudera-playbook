@@ -38,7 +38,7 @@
       "name" : "group_member_attr",
       "value" : "{{ ldap_udom.group_member_attr }}"
     }, {      "name" : "hue_service_safety_valve",
-      "value" : "[hbase]\nhbase_conf_dir={% raw %}{{HBASE_CONF_DIR}}{% endraw %}\nthrift_transport=buffered\n[desktop]\nleaflet_tile_layer=\"{{ cdh_services | json_query('[?type==`hue`].leaflet_tile_layer') | first }}\"\nleaflet_tile_layer_attribution=\"{{ cdh_services | json_query('[?type==`hue`].mapping_attribution') | first }}\"\nsecure_content_security_policy=\"{{ cdh_services | json_query('[?type==`hue`].secure_content_security_policy') | first }}\"\ndisable_hue_3=true\n[[database]]\n{% if (database_type == 'oracle') %}options={\"threaded\":true}{% endif %}\n[[ldap]]\nsync_groups_on_login=true\n[[custom]]\nbanner_top_html='{{ lookup('file', inventory_dir + '/files/hue-banner.txt') }}'\n[useradmin]\nhome_dir_permissions=0700"
+      "value" : "[hbase]\nhbase_conf_dir={% raw %}{{HBASE_CONF_DIR}}{% endraw %}\nthrift_transport=buffered\n[desktop]\nleaflet_tile_layer=\"{{ cdh_services | json_query('[?type==`hue`].leaflet_tile_layer') | first }}\"\nleaflet_tile_layer_attribution=\"{{ cdh_services | json_query('[?type==`hue`].mapping_attribution') | first }}\"\nsecure_content_security_policy=\"{{ cdh_services | json_query('[?type==`hue`].secure_content_security_policy') | first }}\"\ndisable_hue_3=true\n[[database]]\n{% if (database_type == 'oracle') %}options={\"threaded\":true}{% endif %}\n[[ldap]]\nsync_groups_on_login=true\n[[custom]]\nbanner_top_html='{{ lookup('file', inventory_dir + '/files/hue-banner.txt', errors='ignore') | default('Ansible Build', true) }}'\n[useradmin]\nhome_dir_permissions=0700"
     }, {
       "name" : "usage_data_collection_enable",
       "value" : "false"
@@ -116,9 +116,9 @@
       {
         "name" : "hue_http_port",
         "variable" : "HUE_HTTP_PORT"
-      }
+      },
       {% endif %}
-      , {
+      {
         "name" : "hue_server_log_dir",
         "value" : "{{ log_base }}/hue"
       }, {

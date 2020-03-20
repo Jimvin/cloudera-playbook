@@ -18,7 +18,6 @@
     - include_vars: "{{ inventory_dir }}/group_vars/db_server.yml"
   roles:
     - { role: db_teardown_mysql_cdh, when: database_type == 'mysql' }
-    - { role: db_teardown_postgres_cdh, when: database_type == 'postgres' }
     - { role: db_teardown_oracle_cdh, when: database_type == 'oracle' }
   tags: db_teardown_cdh
 
@@ -44,7 +43,6 @@
   hosts: db_server
   roles:
     - { role: db_teardown_mysql_cm, when: database_type == 'mysql' }
-    - { role: db_teardown_postgres_cm, when: database_type == 'postgres' }
     - { role: db_teardown_oracle_cm, when: database_type == 'oracle' }
   tags: db_teardown_cm
 

@@ -247,7 +247,6 @@
 
 - name: Copy cacerts to jssecacerts
   local_action: shell cp {{ tls.cacerts_file }} {{ jssecacerts_local_location }}
-  sudo: yes
   run_once: true
   args:
     creates: "{{ jssecacerts_local_location }}"
