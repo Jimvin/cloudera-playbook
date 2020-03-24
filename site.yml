@@ -61,24 +61,25 @@
   hosts: ca_server
   roles:
     - ca_server
+  tags: [ca_server, pki]
 
 - name: Setup certificates
   hosts: all
   roles:
     - certs
-  tags: certs
+  tags: [certs, pki]
 
 - name: Sign Certs
   hosts: ca_server
   roles:
     - ca_server_signing
-  tags: ca_server_signing
+  tags: [ca_server_signing, pki]
 
 - name: Install certificates
   hosts: all
   roles:
     - certs_signed_install
-  tags: certs_signed_install
+  tags: [certs_signed_install, pki]
 
 - name: Install Cloudera Manager Server
   hosts: scm_server

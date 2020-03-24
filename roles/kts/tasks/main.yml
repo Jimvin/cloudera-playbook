@@ -24,6 +24,18 @@
 
 - set_fact: cm_api_url="{{ cm_api_url }}/api/{{ result.content }}"
 
+- name: Check whether we are on a trial
+  uri:
+    url: "{{ cm_api_url }}/cm/license"
+    method: GET
+    status_code: 200
+    force_basic_auth: yes
+    user: "{{ scm_default_user }}"
+    password: "{{ scm_default_pass }}"
+    return_content: yes
+  register: license_resp
+  failed_when: license_resp.json.owner=="Trial License"
+
 - name: Check whether cluster exists
   uri:
     url: "{{ cm_api_url }}/cm/service"

@@ -1,16 +1,16 @@
 # Note for AWS: 'Public DNS' name is too long for ansible_host, use 'Public IP' (https://github.com/ansible/ansible/issues/11536)
 
 [scm_server]
-tristan-cdp-12.vpc.cloudera.com    license_file=/root/tristan_stevens_2019_2020_cloudera_license.txt
+host1.example.com
 
 [db_server]
-tristan-cdp-12.vpc.cloudera.com
+host1.example.com
 
 [krb5_server]
-tristan-cdp-12.vpc.cloudera.com    default_realm=MIT.EXAMPLE.COM
+host1.example.com    default_realm=MIT.EXAMPLE.COM
 
 [ca_server]
-tristan-cdp-12.vpc.cloudera.com
+host1.example.com
 
 [utility_servers:children]
 scm_server
@@ -22,28 +22,28 @@ gatewayen_servers
 gatewaylb_servers
 
 [gatewayen_servers]
-#tristan-cdp-12.vpc.cloudera.com    host_template=HostTemplate-GatewayEdge
+#host1.example.com    host_template=HostTemplate-GatewayEdge
 
 [gatewaylb_servers]
-tristan-cdp-4.vpc.cloudera.com    host_template=HostTemplate-GatewayLB
+host4.example.com    host_template=HostTemplate-GatewayLB
 
 [master_servers]
-tristan-cdp-12.vpc.cloudera.com    host_template=HostTemplate-Master1
-tristan-cdp-2.vpc.cloudera.com    host_template=HostTemplate-Master2
-tristan-cdp-3.vpc.cloudera.com    host_template=HostTemplate-Master3
+host1.example.com    host_template=HostTemplate-Master1
+host2.example.com    host_template=HostTemplate-Master2
+host3.example.com    host_template=HostTemplate-Master3
 
 [worker_servers]
-tristan-cdp-5.vpc.cloudera.com
-tristan-cdp-6.vpc.cloudera.com
-tristan-cdp-1.vpc.cloudera.com
+host5.example.com
+host6.example.com
+host9.example.com
 
 [worker_servers:vars]
 host_template=HostTemplate-Workers
 #host_template=HostTemplate-Kafka
 
 [kms_servers]
-tristan-cdp-6.vpc.cloudera.com
-tristan-cdp-7.vpc.cloudera.com
+host6.example.com
+host5.example.com
 
 [cdh_servers:children]
 utility_servers
@@ -53,11 +53,11 @@ worker_servers
 kms_servers
 
 [kts_servers]
-tristan-cdp-7.vpc.cloudera.com host_template=KeyTrusteeActive
-tristan-cdp-8.vpc.cloudera.com host_template=KeyTrusteePassive
+host7.example.com host_template=KeyTrusteeActive
+host8.example.com host_template=KeyTrusteePassive
 
 [haproxy]
-tristan-cdp-12.vpc.cloudera.com
+host1.example.com
 
 [all:vars]
 # 'ad', 'mit', or 'none' to disable security

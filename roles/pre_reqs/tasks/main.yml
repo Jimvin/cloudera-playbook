@@ -20,6 +20,7 @@
     name: tuned
     state: stopped
     enabled: no
+  ignore_errors: true
 
 - name: install nscd service
   yum:
@@ -55,6 +56,7 @@
     name: chronyd
     state: stopped
     enabled: no
+  ignore_errors: true
 
 - name: disable transparent huge pages until reboot - enabled conf
   shell: 'echo never > /sys/kernel/mm/transparent_hugepage/enabled'
@@ -96,9 +98,11 @@
     backrefs: yes
     regexp: '^(GRUB_CMDLINE_LINUX=(?!.*hugepage)\"[^\"]+)(\".*)'
     line: '\1 transparent_hugepage=never\2'
+  ignore_errors: true
 
 - name: Disable THP - rebuild GRUB
   shell: "grub2-mkconfig -o /boot/grub2/grub.cfg"
+  ignore_errors: true
 
 - name: Set SELINUX to permissive - config
   lineinfile:
@@ -106,6 +110,7 @@
     regexp: ^SELINUX=
     line: SELINUX=permissive
     state: present
+  ignore_errors: true
 
 - name: Set SELINUX to permissive - setenforce
   shell: "setenforce 0"
